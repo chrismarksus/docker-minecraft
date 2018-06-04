@@ -1,0 +1,60 @@
+version: "2"
+
+services:
+  influxdb:
+    container_name: influxdb
+    image: influxdb:1.0.2
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb
+    restart: always
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:4.3.2
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    links:
+      - influxdb
+    restart: always
+
+  telegraf:
+    container_name: telegraf
+    image: telegraf:1.3.3
+    network_mode: "host"
+    privileged: true
+    volumes:
+      - ./telegraf.config:/etc/telegraf/telegraf.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    volumes:
+      - ./data/web/:/usr/share/nginx/html
+    ports:
+      - "8080:80"
+    restart: always
+
+  minecraft:
+    container_name: minecraft
+    image: overshard/minecraft
+    volumes:
+      - ./data/minecraft/:/data
+    ports:
+      - "25565:25565"
+    command: /start
+    restart: always
+
+  overviewer:
+    container_name: overviewer
+    build: ./overviewer
+    volumes:
+      - ./data/web:/etc/overviewer/web
+    command: /start
+    restart: always 
